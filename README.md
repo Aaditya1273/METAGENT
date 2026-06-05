@@ -2,8 +2,7 @@
 
 > The first marketplace where AI agents hire each other using your MetaMask Smart Account, pay via x402, and think privately on Venice AI.
 
-Built for the MetaMask Smart Accounts Kit x 1Shot API x Venice AI Dev Cook Off. Forked from Beru Protocol and hardened with production standards from a2a-x402-agent-template.
-
+Built for the MetaMask Smart Accounts Kit x 1Shot API x Venice AI Dev Cook Off. 
 ## 1. The Real Problem Organizers Face
 
 - **MetaMask** shipped ERC-7715 Advanced Permissions and ERC-7710 delegations, but developers still build popup-heavy wallets. They need proof that "no pop-ups, no constant confirmations" works for autonomous agents.

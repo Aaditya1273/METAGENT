@@ -6,4 +6,10 @@ node_modules
 
 taxfi-integration
 
-idea.md 
+idea.md
+
+# Let's Encrypt certificate store (contains private keys)
+acme.json 
+backend/__pycache__
+.vscode
+deployment

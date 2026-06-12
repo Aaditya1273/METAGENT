@@ -119,6 +119,8 @@ const getDefaultConfig = (): ApiConfig => {
 class TaxFiApiClient {
   private config: ApiConfig;
   private token: string | null = null;
+  private maxRetries = 3;
+  private retryDelay = 1000; // 1 second base delay
 
   constructor() {
     this.config = getDefaultConfig();
@@ -157,18 +159,40 @@ class TaxFiApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retryCount = 0
   ): Promise<T> {
     // In production (empty baseUrl), prepend /api so requests go through the nginx proxy.
     // In development (full URL), use the endpoint as-is.
     const path = this.config.baseUrl ? endpoint : `/api${endpoint}`;
     const url = `${this.config.baseUrl}${path}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: { ...this.getHeaders(), ...options.headers },
-    });
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers: { ...this.getHeaders(), ...options.headers },
+      });
+    } catch (networkError) {
+      // Network error — retry with exponential backoff if we haven't exhausted retries
+      if (retryCount < this.maxRetries) {
+        const delay = this.retryDelay * Math.pow(2, retryCount);
+        console.warn(`[api] Network error for ${endpoint}, retry ${retryCount + 1}/${this.maxRetries} after ${delay}ms`, networkError);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.request<T>(endpoint, options, retryCount + 1);
+      }
+      throw new Error(`Network error: ${endpoint} unreachable after ${this.maxRetries} retries`);
+    }
 
     if (!response.ok) {
+      // Server-side errors — don't retry 4xx client errors, retry 5xx server errors
+      if (response.status >= 500 && retryCount < this.maxRetries) {
+        const delay = this.retryDelay * Math.pow(2, retryCount);
+        console.warn(`[api] Server error ${response.status} for ${endpoint}, retry ${retryCount + 1}/${this.maxRetries} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this.request<T>(endpoint, options, retryCount + 1);
+      }
+
       const error = await response.json().catch(() => ({ detail: 'Request failed' }));
       throw new Error(error.detail || `HTTP ${response.status}`);
     }
@@ -275,7 +299,7 @@ class TaxFiApiClient {
 
   // Open lots
   async getOpenLots(address: string): Promise<LotsResponse> {
-    return this.request(`/lots/${address}`);
+    return this.request(`/lots?address=${encodeURIComponent(address)}`);
   }
 
   // Cost basis

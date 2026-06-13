@@ -583,6 +583,28 @@ async def continuous_status():
     }
 
 
+# ── Settings ────────────────────────────────────────────────────────────────
+
+
+@app.patch("/settings", tags=["Settings"])
+async def update_settings(req: ConfigUpdateRequest):
+    """Update runtime configuration settings."""
+    orch = get_orchestrator()
+    if req.cost_basis_method:
+        orch.config["cost_basis_method"] = req.cost_basis_method
+        if hasattr(orch.basis, "method"):
+            from backend.agents.basis_agent import CostBasisMethod
+            orch.basis.method = CostBasisMethod(req.cost_basis_method)
+    if req.harvest_threshold_usd is not None:
+        orch.config["harvest_threshold_usd"] = req.harvest_threshold_usd
+        if hasattr(orch.loss_detector, "config"):
+            orch.loss_detector.config["harvest_threshold_usd"] = req.harvest_threshold_usd
+    if req.agent_fee_bps is not None:
+        orch.config["agent_fee_bps"] = req.agent_fee_bps
+    return {"success": True, "message": "Settings updated", **req.model_dump(exclude_none=True)}
+
+
+
 # ── Database ────────────────────────────────────────────────────────────────
 
 

@@ -104,8 +104,10 @@ class IngestAgent(BaseAgent):
         if alchemy_key:
             return await self._scan_alchemy(address, chain_id, alchemy_key)
 
-        # Fallback: return mock/example data for development
-        return self._generate_mock_data(address, chain_id)
+        # No data sources configured — return empty instead of mock data
+        self.log("warn", f"No data source configured for chain {chain_id} — returning empty results."
+                 f" Set COVALENT_API_KEY or ALCHEMY_API_KEY in .env")
+        return []
 
     async def _scan_covalent(
         self, address: str, chain_id: str, api_key: str
@@ -184,55 +186,6 @@ class IngestAgent(BaseAgent):
                 }
             )
         return normalized
-
-    # DEV_MOCK: Replace with real Covalent/Alchemy data in production
-    def _generate_mock_data(self, address: str, chain_id: str) -> list[dict[str, Any]]:
-        """Generate mock transaction data for development/testing."""
-        import hashlib
-        import random
-
-        seed = int(hashlib.sha256(f"{address}:{chain_id}".encode()).hexdigest()[:16], 16)
-        rng = random.Random(seed)
-        mock_txns = []
-        tokens = [
-            {"symbol": "ETH", "address": "0x0000000000000000000000000000000000000000"},
-            {"symbol": "USDC", "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
-            {"symbol": "UNI", "address": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"},
-            {"symbol": "LINK", "address": "0x514910771AF9Ca656af840dff83E8264EcF986CA"},
-        ]
-
-        for _ in range(rng.randint(5, 20)):
-            token = rng.choice(tokens)
-            mock_txns.append(
-                {
-                    "chain_id": chain_id,
-                    "tx_hash": f"0x{rng.randrange(10**40):040x}",
-                    "block_number": rng.randint(19000000, 21000000),
-                    "from_address": address
-                    if rng.random() > 0.3
-                    else f"0x{rng.randrange(10**40):040x}",
-                    "to_address": address
-                    if rng.random() < 0.3
-                    else f"0x{rng.randrange(10**40):040x}",
-                    "value": str(rng.uniform(0.001, 100)),
-                    "token_address": token["address"],
-                    "token_symbol": token["symbol"],
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "method": rng.choice(["swap", "transfer", "approve", "deposit", "withdraw"]),
-                    "transfers": [
-                        {
-                            "from_address": address,
-                            "to_address": f"0x{rng.randrange(10**40):040x}",
-                            "delta": str(rng.uniform(-10, 10)),
-                            "token_symbol": token["symbol"],
-                        }
-                    ],
-                    "gas_used": str(rng.randint(50000, 500000)),
-                    "gas_price": str(rng.randint(10, 100)),
-                    "successful": True,
-                }
-            )
-        return mock_txns
 
     @staticmethod
     def _to_covalent_chain_id(chain_id: str) -> int:

@@ -334,8 +334,8 @@
     }
 
     .opportunity-card {
-        @apply card-premium border-l-4 border-l-accent-orchid transition-all duration-300
-           cursor-pointer hover:border-l-accent-orchid-dark hover:scale-[1.02];
+        @apply card-premium border-l-4 border-l-emerald-400 transition-all duration-300
+           cursor-pointer hover:border-l-emerald-500 hover:scale-[1.02];
     }
 
     .nav-link {

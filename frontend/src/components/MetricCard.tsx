@@ -22,7 +22,7 @@ export function MetricCard({ icon, label, value, change, positive, onClick }: Me
         <div className="text-gray-400 text-sm mb-1">{label}</div>
         <div className="text-white text-xl font-bold">{value}</div>
         {change && (
-          <div className={`text-sm mt-1 ${positive ? 'text-harvest-400' : 'text-loss-400'}`}>
+          <div className={`text-sm mt-1 ${positive ? 'text-emerald-600' : 'text-red-500'}`}>
             {change}
           </div>
         )}

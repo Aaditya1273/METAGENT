@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -104,18 +103,10 @@ class FormGenerator(BaseAgent):
         # Populate entries from ledgers
         ledgers = cost_basis_summary.get("ledgers", {})
         if not ledgers:
-            # Check if dev/test mode is enabled via config or env var
-            dev_mode = self.config.get("dev_mode", False) or os.getenv(
-                "TAXFI_FORM_DEV_MODE", ""
-            ).lower() in ("1", "true", "yes")
-            if dev_mode:
-                self.log("warn", "No cost basis data — using generated mock data (dev mode)")
-                form_data = self._generate_mock_data(tax_year, user_address)
-            else:
-                return self.error(
-                    message="No cost basis data available. Run a pipeline scan first to generate tax forms.",
-                    error="No cost basis ledgers found — pipeline must be run before generating forms",
-                )
+            return self.failure(
+                error="No cost basis ledgers found — pipeline must be run before generating forms",
+                message="No cost basis data available. Run a pipeline scan first to generate tax forms.",
+            )
         else:
             form_data = self._build_from_ledgers(ledgers, tax_year, user_address)
 
@@ -179,58 +170,6 @@ class FormGenerator(BaseAgent):
                         gain_loss=-abs(gl) * 0.2,
                     )
                     form_data.long_term_entries.append(entry)
-
-        return form_data
-
-    def _generate_mock_data(self, tax_year: int, user_address: str) -> TaxFormData:
-        """Generate mock form data for development/testing."""
-        form_data = TaxFormData(tax_year=tax_year, user_address=user_address)
-
-        # Short-term trades
-        form_data.short_term_entries = [
-            Form8949Entry(
-                "0.5 ETH",
-                f"{tax_year - 1}-03-15",
-                f"{tax_year - 1}-08-20",
-                1750.00,
-                1500.00,
-                250.00,
-            ),
-            Form8949Entry(
-                "100 UNI", f"{tax_year - 1}-05-01", f"{tax_year - 1}-09-10", 1250.00, 850.00, 400.00
-            ),
-            Form8949Entry(
-                "2000 USDC → ETH swap",
-                f"{tax_year - 1}-07-01",
-                f"{tax_year - 1}-07-01",
-                2000.00,
-                2000.00,
-                0.00,
-            ),
-        ]
-
-        # Long-term trades
-        form_data.long_term_entries = [
-            Form8949Entry(
-                "2 ETH", f"{tax_year - 2}-01-10", f"{tax_year - 1}-02-15", 6400.00, 4000.00, 2400.00
-            ),
-            Form8949Entry(
-                "500 LINK",
-                f"{tax_year - 2}-06-01",
-                f"{tax_year - 1}-03-20",
-                6500.00,
-                7250.00,
-                -750.00,
-            ),
-        ]
-
-        # Income events
-        form_data.staking_income = 3200.00
-        form_data.airdrop_income = 1500.00
-        form_data.total_other_income = form_data.staking_income + form_data.airdrop_income
-
-        # Harvest savings
-        form_data.harvest_savings = 4200.00
 
         return form_data
 

@@ -400,29 +400,9 @@ class LossDetector(BaseAgent):
                 pass  # Fall through to fallback prices below
 
         if not prices:
-            # DEV_FALLBACK: Known price map for common assets when no API key available
-            known_prices = {
-                "ETH": 2900.0,
-                "USDC": 1.0,
-                "USDT": 1.0,
-                "DAI": 1.0,
-                "UNI": 8.20,
-                "LINK": 14.50,
-                "AAVE": 115.0,
-                "WETH": 2900.0,
-                "WSTETH": 3200.0,
-                "WBTC": 68000.0,
-                "MATIC": 0.52,
-                "ARB": 0.78,
-                "OP": 1.85,
-                "MKR": 1450.0,
-                "COMP": 52.0,
-                "CRV": 0.38,
-                "APE": 1.05,
-                "SAND": 0.35,
-                "MANA": 0.40,
-            }
-            prices = {a: known_prices.get(a, 0.0) for a in assets}
+            self.log("warn", f"No market prices available for {assets} —"
+                     f" cannot calculate harvest opportunities")
+            prices = {a: 0.0 for a in assets}
 
         return prices
 

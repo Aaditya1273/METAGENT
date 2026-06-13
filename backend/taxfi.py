@@ -486,7 +486,9 @@ class TaxFiOrchestrator:
             }
         )
 
-        return result.data if result.data else {"success": False}
+        if result.data:
+            return result.data
+        return {"success": False, "tax_year": year, "error": result.error}
 
     # --- Status & Data Access ---
 

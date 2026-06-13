@@ -12,15 +12,15 @@ export default function FilterPills<T extends string>({
   onSelect,
 }: FilterPillsProps<T>) {
   return (
-    <div className="flex gap-3 flex-wrap">
+    <div className="flex gap-2 flex-wrap">
       {options.map((opt) => (
         <button
           key={opt.value}
           onClick={() => onSelect(opt.value)}
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
             selected === opt.value
-              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm'
-              : 'bg-white text-gray-500 border border-gray-200 hover:border-emerald-200 hover:text-emerald-600'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+              : 'bg-white/70 backdrop-blur-sm text-gray-600 border border-gray-200/60 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50/50'
           }`}
         >
           {opt.label}

@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useRouter } from 'next/navigation';
 import { NAV_LINKS } from '../data';
 
 export default function Nav() {
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -19,7 +21,7 @@ export default function Nav() {
 
   const handleCta = () => {
     if (isConnected) {
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } else if (openConnectModal) {
       openConnectModal();
     }

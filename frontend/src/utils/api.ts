@@ -312,6 +312,18 @@ class TaxFiApiClient {
     return this.request(`/ledgers/${asset}`);
   }
 
+  // Settings
+  async updateSettings(settings: {
+    cost_basis_method?: string;
+    harvest_threshold_usd?: number;
+    agent_fee_bps?: number;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.request('/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(settings),
+    });
+  }
+
   // Continuous mode
   async startContinuous(intervalSeconds = 3600): Promise<{ success: boolean }> {
     return this.request('/continuous/start', {

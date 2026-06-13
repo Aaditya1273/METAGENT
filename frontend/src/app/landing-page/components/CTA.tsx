@@ -2,15 +2,17 @@
 
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useRouter } from 'next/navigation';
 import ScrollReveal from './ScrollReveal';
 
 export default function CTA() {
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const router = useRouter();
 
   const handleCta = () => {
     if (isConnected) {
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } else if (openConnectModal) {
       openConnectModal();
     }
